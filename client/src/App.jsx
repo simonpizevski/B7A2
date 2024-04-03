@@ -6,7 +6,6 @@ import ShowResult from './components/ShowResult';
 
 function App() {
   return (
-    <>
       <div>
       <h1>Welcome to my Wordle Game</h1>
       <p>I want you to guess the random word
@@ -16,8 +15,7 @@ function App() {
       <GuessForm />
       <ShowResult />
     </div>
-    </>
-  )
+  );
 }
 
 export default App

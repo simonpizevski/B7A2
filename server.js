@@ -3,12 +3,16 @@ import { engine } from 'express-handlebars';
 
 const app = express();
 
-app.engine('.hbs', engine({ extname: '.hbs' }));
+app.engine(
+  '.hbs',
+  engine({ extname: '.hbs', partialsDir: ['./views/partials'] })
+);
 app.set('view engine', '.hbs');
 app.set('views', './views');
 
 app.use('/assets', express.static('./client/dist/assets'));
 app.use('/src', express.static('./client/src'));
+app.use('/static', express.static('./client/public/assets'));
 
 app.get('/', (req, res) => {
   res.render('index');
@@ -16,7 +20,5 @@ app.get('/', (req, res) => {
 
 //api
 app.get('/api/wordList', async (req, res) => {});
-
-app.getMaxListeners;
 
 app.listen(5080);
