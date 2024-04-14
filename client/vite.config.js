@@ -11,4 +11,15 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    assetsInlineLimit: 0,
+    chunkSizeWarningLimit: 500, // increase the warning limit
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      },
+    },
+  },
 });
