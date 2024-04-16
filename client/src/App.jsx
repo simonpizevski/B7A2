@@ -60,6 +60,33 @@ function App() {
     }
   };
 
+  const handleSaveHighscore = (name, score) => {
+    const gameTime = Math.floor((endTime - startTime) /1000);
+    try {
+      const response = await fetch('/api/highscore', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name,
+          time: time,
+          score: score,
+          duplicateLetters: allowDuplicates,
+          selectedLength: wordLength,
+          guesses: guesses.length,
+    
+        }),
+
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save highscore');
+      }
+    } catch (error) {
+      console.error('Error saving highscore', error);
+    }
+  }
+
   const startGame = async (length, allowDuplicates) => {
     setWordLength(length);
     setAllowDuplicates(allowDuplicates);
@@ -95,7 +122,7 @@ function App() {
           allowDuplicates={allowDuplicates}
         />
       )}
-      {gameResult === 'win' && <GameWin onReset={resetGame} />}
+      {gameResult === 'win' && <GameWin onReset={resetGame} onSaveHighscore={handleSaveHighscore} time={Math.floor((endTime - startTime) / 1000)} score={score}/>}
       {gameResult === 'loss' && <GameLoss onReset={resetGame} />}
     </div>
   );
