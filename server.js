@@ -40,16 +40,12 @@ app.get('/highscore', (req, res) => {
 });
 
 //api
-app.get('/api/randomWord/:length', async (req, res) => {
+app.get('/api/randomWord/:length/:allowDuplicates', async (req, res) => {
   const length = parseInt(req.params.length);
-  if ([4, 5, 6].includes(length)) {
-    const randomWord = await fetchRandomWord(length);
-    res.json({ word: randomWord });
-  } else {
-    res
-      .status(400)
-      .json({ error: 'Invalid word length. Please choose 4, 5 or 6.' });
-  }
+  const allowDuplicates = req.params.allowDuplicates === 'true';
+  const randomWord = await fetchRandomWord(length, allowDuplicates);
+  console.log(randomWord);
+  res.json({ word: randomWord });
 });
 
 app.post('/api/guess', async (req, res) => {
@@ -61,13 +57,13 @@ app.post('/api/guess', async (req, res) => {
 });
 
 app.post('/api/highscore', async (req, res) => {
-  const { name, time, score, wordLength, uniqueLetters, guesses } = req.body;
+  const { name, time, score, wordLength, duplicateLetters, guesses } = req.body;
   const highscore = new Highscore({
     name,
     time,
     score,
     wordLength,
-    uniqueLetters,
+    duplicateLetters,
     guesses,
   });
   await highscore.save();
