@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import React from 'react';
 
-export default function GameWin({ time, score, onReset, onSaveHighscore }) {
+export default function GameWin({ time, guesses, onReset, onSaveHighscore }) {
   const [name, setName] = useState('');
+
   const handleNameChange = (event) => {
     setName(event.target.value);
   };
-  const handleSaveHighscore = () => {
-    onSaveHighscore(name);
+  const handleSaveHighscore = async () => {
+    await onSaveHighscore(name);
     onReset();
   };
   return (
@@ -15,7 +16,7 @@ export default function GameWin({ time, score, onReset, onSaveHighscore }) {
       <div className='modal-content'>
         <h1>You Win</h1>
         <p>Time Played: {time} seconds</p>
-        <p>Score: {score} </p>
+        <p>{guesses} guesses</p>
         <input
           type='text'
           placeholder='Enter your name here'

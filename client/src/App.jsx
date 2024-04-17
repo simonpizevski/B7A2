@@ -4,17 +4,22 @@ import GameStart from './components/GameStart';
 import GamePlay from './components/GamePlay';
 import GameWin from './components/GameWin';
 import GameLoss from './components/GameLoss';
+import { set } from 'mongoose';
 
 function App() {
   const [gameState, setGameState] = useState('start');
-  const [maxGuesses, setMaxGuesses] = useState(2);
+  const [maxGuesses, setMaxGuesses] = useState(5);
   const [wordLength, setWordLength] = useState(5);
   const [allowDuplicates, setAllowDuplicates] = useState(false);
   const [gameResult, setGameResult] = useState(null);
   const [guesses, setGuesses] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [guessedWord, setGuessedWord] = useState('');
+  const [guessedWords, setGuessedWords] = useState([]);
   const [correctWord, setCorrectWord] = useState('');
+  const [startTime, setStartTime] = useState(false);
+  const [endTime, setEndTime] = useState(false);
+  const [gameTime, setGameTime] = useState(0);
 
   const fetchRandomWord = async (length, allowDuplicates) => {
     try {
@@ -35,7 +40,14 @@ function App() {
     if (gameState !== 'play' || gameResult) {
       return;
     }
+
     const guessLowerCase = guessedWord.toLowerCase();
+
+    if (guessedWords.includes(guessLowerCase)) {
+      alert('You have already guessed that');
+      return;
+    }
+
     if (guessedWord.length === wordLength) {
       const response = await fetch('/api/guess', {
         method: 'POST',
@@ -50,18 +62,20 @@ function App() {
       const data = await response.json();
       setFeedback(data.feedback);
       setGuesses([...guesses, { guess: guessedWord, feedback: data.feedback }]);
+      setGuessedWords([...guessedWords, guessLowerCase]);
       if (data.feedback.every((item) => item.result === 'correct')) {
         setGameResult('win');
+        setEndTime(Date.now());
       } else if (guesses.length + 1 === maxGuesses) {
         setGameResult('loss');
+        setEndTime(Date.now());
       }
     } else {
       alert('Invalid guess length');
     }
   };
 
-  const handleSaveHighscore = (name, score) => {
-    const gameTime = Math.floor((endTime - startTime) /1000);
+  const handleSaveHighscore = async (name) => {
     try {
       const response = await fetch('/api/highscore', {
         method: 'POST',
@@ -70,14 +84,11 @@ function App() {
         },
         body: JSON.stringify({
           name: name,
-          time: time,
-          score: score,
+          time: gameTime,
           duplicateLetters: allowDuplicates,
           selectedLength: wordLength,
           guesses: guesses.length,
-    
         }),
-
       });
       if (!response.ok) {
         throw new Error('Failed to save highscore');
@@ -85,7 +96,15 @@ function App() {
     } catch (error) {
       console.error('Error saving highscore', error);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (startTime && endTime) {
+      const time = endTime - startTime;
+      console.log('Game time' + gameTime);
+      setGameTime(Math.floor(time));
+    }
+  }, [startTime, endTime]);
 
   const startGame = async (length, allowDuplicates) => {
     setWordLength(length);
@@ -98,6 +117,7 @@ function App() {
       setGuessedWord('');
       setFeedback([]);
       setGuesses([]);
+      setStartTime(Date.now());
     }
   };
 
@@ -108,7 +128,11 @@ function App() {
     setGuesses([]);
     setFeedback([]);
     setGuessedWord([]);
-    setMaxGuesses(2);
+    setMaxGuesses(5);
+    setStartTime(null);
+    setEndTime(null);
+    setGameTime(0);
+    setGuessedWords([]);
   };
 
   return (
@@ -122,7 +146,14 @@ function App() {
           allowDuplicates={allowDuplicates}
         />
       )}
-      {gameResult === 'win' && <GameWin onReset={resetGame} onSaveHighscore={handleSaveHighscore} time={Math.floor((endTime - startTime) / 1000)} score={score}/>}
+      {gameResult === 'win' && (
+        <GameWin
+          onReset={resetGame}
+          onSaveHighscore={handleSaveHighscore}
+          time={Math.floor((endTime - startTime) / 1000)}
+          guesses={guesses.length}
+        />
+      )}
       {gameResult === 'loss' && <GameLoss onReset={resetGame} />}
     </div>
   );

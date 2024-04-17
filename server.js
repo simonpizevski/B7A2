@@ -57,7 +57,7 @@ app.post('/api/guess', async (req, res) => {
 });
 
 app.post('/api/highscore', async (req, res) => {
-  const { name, time, score, wordLength, duplicateLetters, guesses } = req.body;
+  const { name, time, wordLength, duplicateLetters, guesses } = req.body;
   const highscore = new Highscore({
     name,
     time,
@@ -66,6 +66,7 @@ app.post('/api/highscore', async (req, res) => {
     duplicateLetters,
     guesses,
   });
+  console.log(highscore + 'highscore data');
   await highscore.save();
   res.status(201).send();
 });
