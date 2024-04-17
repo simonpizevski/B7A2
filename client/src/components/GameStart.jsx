@@ -11,7 +11,7 @@ export default function GameStart({ onStartGame }) {
   };
 
   return (
-    <div>
+    <div className='div-start'>
       <div className='rules'>
         <h2>Rules</h2>
         <p>You have 10 guesses before game over</p>

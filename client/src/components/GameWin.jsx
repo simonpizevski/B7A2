@@ -9,7 +9,6 @@ export default function GameWin({ time, guesses, onReset, onSaveHighscore }) {
   };
   const handleSaveHighscore = async () => {
     await onSaveHighscore(name);
-    onReset();
   };
   return (
     <div className='modal'>
@@ -19,11 +18,12 @@ export default function GameWin({ time, guesses, onReset, onSaveHighscore }) {
         <p>{guesses} guesses</p>
         <input
           type='text'
-          placeholder='Enter your name here'
+          placeholder='Enter your name'
           value={name}
           onChange={handleNameChange}
         />
         <button onClick={handleSaveHighscore}>Save Highscore</button>
+        <p style={{ fontWeight: 700 }}>or</p>
         <button onClick={onReset}>Play Again</button>
       </div>
     </div>

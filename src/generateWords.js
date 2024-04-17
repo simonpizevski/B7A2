@@ -1,7 +1,8 @@
 import fs from 'fs';
 
 export default function fetchRandomWord(length, allowDuplicates = false) {
-  const words = fs.readFileSync('./src/words_alpha.txt', 'utf8').split('\n');
+  const words = fs.readFileSync('./src/words_alpha.txt', 'utf8').split(/\r?\n/);
+  console.log(words);
   let filteredWords = words.filter((word) => word.trim().length === length);
 
   if (!allowDuplicates) {

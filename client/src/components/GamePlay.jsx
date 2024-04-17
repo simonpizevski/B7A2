@@ -24,7 +24,7 @@ export default function GamePlay({
     <div className='game-play'>
       <div className='game-play-content'>
         <div className='guess-list'>
-          <h2>Your Guesses:</h2>
+          <h1>Your Guesses:</h1>
           <ul>
             {guesses.map((guess, index) => (
               <li key={index}>

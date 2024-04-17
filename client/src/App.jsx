@@ -4,7 +4,6 @@ import GameStart from './components/GameStart';
 import GamePlay from './components/GamePlay';
 import GameWin from './components/GameWin';
 import GameLoss from './components/GameLoss';
-import { set } from 'mongoose';
 
 function App() {
   const [gameState, setGameState] = useState('start');
@@ -43,11 +42,6 @@ function App() {
 
     const guessLowerCase = guessedWord.toLowerCase();
 
-    if (guessedWords.includes(guessLowerCase)) {
-      alert('You have already guessed that');
-      return;
-    }
-
     if (guessedWord.length === wordLength) {
       const response = await fetch('/api/guess', {
         method: 'POST',
@@ -62,7 +56,6 @@ function App() {
       const data = await response.json();
       setFeedback(data.feedback);
       setGuesses([...guesses, { guess: guessedWord, feedback: data.feedback }]);
-      setGuessedWords([...guessedWords, guessLowerCase]);
       if (data.feedback.every((item) => item.result === 'correct')) {
         setGameResult('win');
         setEndTime(Date.now());
@@ -76,25 +69,29 @@ function App() {
   };
 
   const handleSaveHighscore = async (name) => {
-    try {
-      const response = await fetch('/api/highscore', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: name,
-          time: gameTime,
-          duplicateLetters: allowDuplicates,
-          selectedLength: wordLength,
-          guesses: guesses.length,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to save highscore');
+    if (!name) {
+      alert('You must enter a name before saving highscore');
+    } else {
+      try {
+        const response = await fetch('/api/highscore', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: name,
+            time: gameTime,
+            duplicateLetters: allowDuplicates,
+            selectedLength: wordLength,
+            guesses: guesses.length,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to save highscore');
+        }
+      } catch (error) {
+        console.error('Error saving highscore', error);
       }
-    } catch (error) {
-      console.error('Error saving highscore', error);
     }
   };
 
@@ -102,7 +99,7 @@ function App() {
     if (startTime && endTime) {
       const time = endTime - startTime;
       console.log('Game time' + gameTime);
-      setGameTime(Math.floor(time));
+      setGameTime(Math.floor(time / 1000));
     }
   }, [startTime, endTime]);
 
@@ -132,7 +129,6 @@ function App() {
     setStartTime(null);
     setEndTime(null);
     setGameTime(0);
-    setGuessedWords([]);
   };
 
   return (
@@ -154,7 +150,9 @@ function App() {
           guesses={guesses.length}
         />
       )}
-      {gameResult === 'loss' && <GameLoss onReset={resetGame} />}
+      {gameResult === 'loss' && (
+        <GameLoss onReset={resetGame} correctWord={correctWord.toUpperCase()} />
+      )}
     </div>
   );
 }

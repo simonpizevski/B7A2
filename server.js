@@ -61,7 +61,6 @@ app.post('/api/highscore', async (req, res) => {
   const highscore = new Highscore({
     name,
     time,
-    score,
     wordLength,
     duplicateLetters,
     guesses,

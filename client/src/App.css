@@ -65,6 +65,10 @@ select {
   margin-left: 2rem;
 }
 
+option {
+  font-size: 3rem;
+}
+
 ul {
   font-size: 4rem;
   padding: 0;
@@ -94,11 +98,14 @@ span {
 
 .guess-list {
   font-size: 5rem;
-  min-height: 20rem;
 }
 
 .guess-list li {
-  font-size: 3rem;
+  font-size: 1rem;
+}
+
+.guess-list span {
+  font-size: 5rem;
 }
 
 .game-div {
@@ -127,20 +134,35 @@ span {
   border: 1px solid #888;
   width: 40%;
   height: fit-content;
-  padding-bottom: 4rem;
+  padding-bottom: 2rem;
 }
 
 .modal-content button {
   width: fit-content;
   margin: auto;
   margin-top: 2rem;
-  font-size: 2rem;
+  font-size: 3rem;
+  margin-bottom: 2rem;
 }
 
 .modal-content input {
   width: 50%;
   margin: auto;
   margin-top: 2rem;
+  margin-bottom: 2rem;
+  font-size: 3rem;
+}
+
+.modal-content input::placeholder {
+}
+
+.modal-content p {
+  font-size: 3rem;
+}
+
+.div-start {
+  display: flex;
+  justify-content: center;
 }
 
 .game-start {
@@ -170,10 +192,9 @@ span {
 .rules {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: flex-start;
   border: 0.1rem solid white;
-  position: fixed;
-  top: 0;
   padding: 2rem;
   padding-top: 1rem;
 }
