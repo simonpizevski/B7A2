@@ -21,6 +21,13 @@ body {
   min-height: 100%;
 }
 
+#root {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 hr {
   border: 0;
   height: 1px;

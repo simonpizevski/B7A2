@@ -1,110 +1,174 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import GameSetup from './components/GameSetup';
+import GameStart from './components/GameStart';
 import GamePlay from './components/GamePlay';
-import GameEnd from './components/GameEnd';
+import GameWin from './components/GameWin';
+import GameLoss from './components/GameLoss';
 
 function App() {
-  const [gameStarted, setGameStarted] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [gameOutcome, setGameOutcome] = useState('');
-  const [score, setScore] = useState(0);
-  const [gameTime, setGameTime] = useState(0);
-  const [playerName, setPlayerName] = useState('');
+  const [gameState, setGameState] = useState('start');
+  const [maxGuesses, setMaxGuesses] = useState(5);
+  const [wordLength, setWordLength] = useState(5);
+  const [allowDuplicates, setAllowDuplicates] = useState(false);
+  const [gameResult, setGameResult] = useState(null);
   const [guesses, setGuesses] = useState([]);
-  const [selectedLength, setSelectedLength] = useState(5);
-  const [uniqueLettersCount, setUniqueLettersCount] = useState(0);
+  const [feedback, setFeedback] = useState([]);
+  const [guessedWord, setGuessedWord] = useState('');
+  const [guessedWords, setGuessedWords] = useState([]);
+  const [correctWord, setCorrectWord] = useState('');
+  const [startTime, setStartTime] = useState(false);
+  const [endTime, setEndTime] = useState(false);
+  const [gameTime, setGameTime] = useState(0);
+  const [highscoreSaved, setHighscoreSaved] = useState(false);
+  const [duplicateGuess, setDuplicateGuess] = useState(false);
 
-  const handleStartGame = () => {
-    setGameStarted(true);
-  };
-
-  const handleEndGame = (
-    outcome,
-    time,
-    playerScore,
-    guessList,
-    wordLength,
-    lettersCount
-  ) => {
-    setGameStarted(false);
-    setGameOutcome(outcome);
-    setGameTime(time);
-    setScore(playerScore);
-    setShowModal(true);
-    setGuesses(guessList);
-    setSelectedLength(wordLength);
-    setUniqueLettersCount(lettersCount);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
-  const handleTryAgain = () => {
-    setShowModal(false);
-    setGameStarted(true);
-  };
-
-  const handleSaveHighscore = async (
-    name,
-    score,
-    time,
-    guesses,
-    selectedLength,
-    uniqueLettersCount
-  ) => {
+  const fetchRandomWord = async (length, allowDuplicates) => {
     try {
-      const response = await fetch('/api/highscore', {
+      const response = await fetch(
+        `/api/randomWord/${length}/${allowDuplicates}`
+      );
+      if (!response.ok) {
+        throw new Error('Response not ok.');
+      }
+      const data = await response.json();
+      return data.word;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleGuess = async (guessedWord) => {
+    if (gameState !== 'play' || gameResult) {
+      return;
+    }
+
+    const guessLowerCase = guessedWord.toLowerCase();
+
+    if (guessedWords.includes(guessLowerCase)) {
+      setDuplicateGuess(true);
+      alert('You have already guessed that');
+      return;
+    }
+
+    setGuessedWords([...guessedWords, guessLowerCase]);
+
+    if (guessedWord.length === wordLength) {
+      const response = await fetch('/api/guess', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name,
-          score,
-          time,
-          guesses,
-          selectedLength,
-          uniqueLettersCount,
+          guessedWord: guessLowerCase,
+          correctWord: correctWord,
         }),
       });
-      if (!response.ok) {
-        throw new Error('Failed to save highscore');
+      const data = await response.json();
+      setFeedback(data.feedback);
+      setGuesses([...guesses, { guess: guessedWord, feedback: data.feedback }]);
+      if (data.feedback.every((item) => item.result === 'correct')) {
+        setGameResult('win');
+        setEndTime(Date.now());
+      } else if (guesses.length + 1 === maxGuesses) {
+        setGameResult('loss');
+        setEndTime(Date.now());
       }
-      console.log('highscore saved');
-    } catch (error) {
-      console.error('Error saving highscore', error);
-      return;
+    } else {
+      alert('Invalid guess length');
     }
-    setShowModal(false);
+  };
+
+  const handleSaveHighscore = async (name) => {
+    if (!name) {
+      alert('You must enter a name before saving highscore');
+    } else {
+      try {
+        const response = await fetch('/api/highscore', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: name,
+            time: gameTime,
+            duplicateLetters: allowDuplicates,
+            selectedLength: wordLength,
+            guesses: guesses.length,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to save highscore');
+        } else {
+          setHighscoreSaved(true);
+        }
+      } catch (error) {
+        console.error('Error saving highscore', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (startTime && endTime) {
+      const time = endTime - startTime;
+      console.log('Game time' + gameTime);
+      setGameTime(Math.floor(time / 1000));
+    }
+  }, [startTime, endTime]);
+
+  const startGame = async (length, allowDuplicates) => {
+    setWordLength(length);
+    setAllowDuplicates(allowDuplicates);
+    const randomWord = await fetchRandomWord(length, allowDuplicates);
+    console.log('Random word:', randomWord);
+    if (randomWord) {
+      setGameState('play');
+      setCorrectWord(randomWord);
+      setGuessedWord('');
+      setFeedback([]);
+      setGuesses([]);
+      setStartTime(Date.now());
+    }
+  };
+
+  const resetGame = () => {
+    setGameState('start');
+    setWordLength(4);
+    setGameResult(null);
+    setGuesses([]);
+    setFeedback([]);
+    setGuessedWord([]);
+    setMaxGuesses(5);
+    setStartTime(null);
+    setEndTime(null);
+    setGameTime(0);
+    setHighscoreSaved(false);
+    setGuessedWords([]);
+    setDuplicateGuess(true);
   };
 
   return (
-    <div className='App'>
-      {!gameStarted ? (
-        <GameSetup onStartGame={handleStartGame} />
-      ) : (
+    <div>
+      {gameState === 'start' && <GameStart onStartGame={startGame} />}
+      {gameState === 'play' && (
         <GamePlay
-          onEndGame={handleEndGame}
-          playerName={playerName}
-          setPlayerName={setPlayerName}
+          guesses={guesses}
+          onGuess={handleGuess}
+          wordLength={wordLength}
+          allowDuplicates={allowDuplicates}
         />
       )}
-      <GameEnd
-        show={showModal}
-        gameOutcome={gameOutcome}
-        onClose={handleCloseModal}
-        score={score}
-        gameTime={gameTime}
-        playerName={playerName}
-        handleTryAgain={handleTryAgain}
-        setPlayerName={setPlayerName}
-        handleSaveHighscore={handleSaveHighscore}
-        guesses={guesses}
-        selectedLength={selectedLength}
-        uniqueLettersCount={uniqueLettersCount}
-      />
+      {gameResult === 'win' && (
+        <GameWin
+          onReset={resetGame}
+          onSaveHighscore={handleSaveHighscore}
+          time={Math.floor((endTime - startTime) / 1000)}
+          guesses={guesses.length}
+          highscoreSaved={highscoreSaved}
+        />
+      )}
+      {gameResult === 'loss' && (
+        <GameLoss onReset={resetGame} correctWord={correctWord.toUpperCase()} />
+      )}
     </div>
   );
 }
