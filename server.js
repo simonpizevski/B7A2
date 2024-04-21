@@ -7,6 +7,7 @@ import fetchRandomWord from './src/generateWords.js';
 import algorithmA from './src/wordleAlgorithm.js';
 import cors from 'cors';
 import { config } from 'dotenv';
+import calculateScore from './src/calculateScore.js';
 
 const app = express();
 app.use(express.json());
@@ -22,7 +23,6 @@ app.engine(
 );
 app.set('view engine', '.hbs');
 app.set('views', './views');
-
 app.use('/assets', express.static('./client/dist/assets'));
 app.use('/src', express.static('./client/src'));
 app.use('/static', express.static('./client/public/assets'));
@@ -35,11 +35,6 @@ app.get('/about-us', (req, res) => {
   res.render('aboutUs');
 });
 
-app.get('/highscore', (req, res) => {
-  res.render('highscore');
-});
-
-//api
 app.get('/api/randomWord/:length/:allowDuplicates', async (req, res) => {
   const length = parseInt(req.params.length);
   const allowDuplicates = req.params.allowDuplicates === 'true';
@@ -56,16 +51,42 @@ app.post('/api/guess', async (req, res) => {
   console.log(feedback);
 });
 
+app.get('/highscore', async (req, res) => {
+  try {
+    const highscores = await Highscore.find().limit(10);
+
+    const scores = highscores.map((score) => ({
+      ...score.toObject(),
+      totalScore: Math.round(
+        calculateScore(
+          score.time,
+          score.guesses,
+          score.selectedLength,
+          score.duplicateLetters
+        )
+      ),
+    }));
+
+    scores.sort((a, b) => b.totalScore - a.totalScore);
+    res.render('highscore', { highscores: scores });
+    console.log(highscores);
+  } catch (error) {
+    console.error('Error retrieving highscores', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.get('/api/highscore', async (req, res) => {});
+
 app.post('/api/highscore', async (req, res) => {
-  const { name, time, wordLength, duplicateLetters, guesses } = req.body;
+  const { name, time, selectedLength, duplicateLetters, guesses } = req.body;
   const highscore = new Highscore({
     name,
     time,
-    wordLength,
+    selectedLength,
     duplicateLetters,
     guesses,
   });
-  console.log(highscore + 'highscore data');
   await highscore.save();
   res.status(201).send();
 });

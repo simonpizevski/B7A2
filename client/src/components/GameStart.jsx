@@ -14,7 +14,7 @@ export default function GameStart({ onStartGame }) {
     <div className='div-start'>
       <div className='rules'>
         <h2>Rules</h2>
-        <p>You have 10 guesses before game over</p>
+        <p>You have 5 guesses before game over</p>
         <p>Submit your guess in the input area</p>
         <p>
           <span className='green'>G</span>reen letter means correct letter

@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import React from 'react';
 
-export default function GameWin({ time, guesses, onReset, onSaveHighscore }) {
+export default function GameWin({
+  time,
+  guesses,
+  onReset,
+  onSaveHighscore,
+  highscoreSaved,
+}) {
   const [name, setName] = useState('');
 
   const handleNameChange = (event) => {
@@ -22,7 +28,9 @@ export default function GameWin({ time, guesses, onReset, onSaveHighscore }) {
           value={name}
           onChange={handleNameChange}
         />
-        <button onClick={handleSaveHighscore}>Save Highscore</button>
+        <button onClick={handleSaveHighscore} disabled={highscoreSaved}>
+          Save Highscore
+        </button>
         <p style={{ fontWeight: 700 }}>or</p>
         <button onClick={onReset}>Play Again</button>
       </div>

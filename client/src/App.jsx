@@ -19,6 +19,8 @@ function App() {
   const [startTime, setStartTime] = useState(false);
   const [endTime, setEndTime] = useState(false);
   const [gameTime, setGameTime] = useState(0);
+  const [highscoreSaved, setHighscoreSaved] = useState(false);
+  const [duplicateGuess, setDuplicateGuess] = useState(false);
 
   const fetchRandomWord = async (length, allowDuplicates) => {
     try {
@@ -41,6 +43,14 @@ function App() {
     }
 
     const guessLowerCase = guessedWord.toLowerCase();
+
+    if (guessedWords.includes(guessLowerCase)) {
+      setDuplicateGuess(true);
+      alert('You have already guessed that');
+      return;
+    }
+
+    setGuessedWords([...guessedWords, guessLowerCase]);
 
     if (guessedWord.length === wordLength) {
       const response = await fetch('/api/guess', {
@@ -88,6 +98,8 @@ function App() {
         });
         if (!response.ok) {
           throw new Error('Failed to save highscore');
+        } else {
+          setHighscoreSaved(true);
         }
       } catch (error) {
         console.error('Error saving highscore', error);
@@ -129,6 +141,9 @@ function App() {
     setStartTime(null);
     setEndTime(null);
     setGameTime(0);
+    setHighscoreSaved(false);
+    setGuessedWords([]);
+    setDuplicateGuess(true);
   };
 
   return (
@@ -148,6 +163,7 @@ function App() {
           onSaveHighscore={handleSaveHighscore}
           time={Math.floor((endTime - startTime) / 1000)}
           guesses={guesses.length}
+          highscoreSaved={highscoreSaved}
         />
       )}
       {gameResult === 'loss' && (

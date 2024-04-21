@@ -1,1 +1,27 @@
-<h1>highscore page</h1>
+<div class='highscore'>
+  <h1>
+    Leaderboard
+  </h1>
+  <table>
+    <thead>
+      <tr>
+        <th class='green'>Name</th>
+        <th class='yellow'>Time</th>
+        <th class='red'>Length</th>
+        <th class='green'>Guesses</th>
+        <th class='total-score yellow'>Total Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each highscores}}
+        <tr>
+          <td class='td-name'>{{this.name}}</td>
+          <td>{{this.time}}</td>
+          <td>{{this.selectedLength}}</td>
+          <td>{{this.guesses}}</td>
+          <td class='total-score-td'>{{this.totalScore}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
